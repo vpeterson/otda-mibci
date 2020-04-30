@@ -1,4 +1,4 @@
-# DOMAIN ADAPTATION BASED ON OPTIMAL TRANSPORT FOR MI-BCI
+## DOMAIN ADAPTATION BASED ON OPTIMAL TRANSPORT FOR MI-BCI
 
 You will find here all the codes and instructions you need in order to reproduce the experiments performed in "Transfer Learning Based on Optimal Transport for MI-BCI", by Victoria Peterson, Diego H. Milone, Dominik Wyser, Olivier Lambercy, Roger Gassert and Ruben Spies.
 
