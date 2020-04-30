@@ -2,7 +2,9 @@
 
 You will find here all the codes and instructions you need in order to reproduce the experiments performed in "Transfer Learning Based on Optimal Transport for MI-BCI", by Victoria Peterson, Diego H. Milone, Dominik Wyser, Olivier Lambercy, Roger Gassert and Ruben Spies.
 
-We provide here two examples, each one for each online testing scenario considered in our study. 
+In MIOTDAfunctions.py you will find all the defined functions implemented for learning the mapping, the training subset as well as choosing the best regularization parameters. 
+
+Two notebook examples are provided, each one for each online testing scenario considered in our study. 
 
 ## Requeriments 
 ### (Python 3)
