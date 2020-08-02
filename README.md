@@ -13,22 +13,25 @@ Two notebook examples are provided, each one for each online testing scenario co
 3) Scikit Learn (https://scikit-learn.org/stable/)
 
 ## Installation guidelines (based on Anaconda Distribution)
-### create conda environment
+The library has been tested on Linux and Windows
+### 1. Create conda environment
 $conda create --name otda pip
-### Activate conda environment
+### 2. Activate conda environment
 $conda activate otda
-### Install sklearn
+### 3. Install sklearn (if need it)
 $pip3 install sklearn
-### Install Jupyter
+### 4. Install Jupyter (if need it)
 $pip3 install jupyter
-### Install MNE
+### 5. Install MNE (more information here https://mne.tools/stable/install/mne_python.html)
 $pip3 install mne
-### Install POT 
+### Install POT (more information here https://pythonot.github.io/)
 $conda install -c conda-forge pot
 ### Install OTDA
 #### opt. 1: using git
 $git clone https://github.com/vpeterson/otda-mibci.git
 #### opt. 2: download this folder and unzip it
+
+## Examples:
 ### Run example blockwise OTDA test
 #### locate where otda-mibci folder is:
 $cd otda-mibci
