@@ -15,31 +15,61 @@ Two notebook examples are provided, each one for each online testing scenario co
 ## Installation guidelines (based on Anaconda Distribution)
 The library has been tested on Linux and Windows
 ### 1. Create conda environment
-$conda create --name otda pip
+```
+conda create --name otda pip
+```
+
 ### 2. Activate conda environment
-$conda activate otda
+```
+conda activate otda
+```
+
 ### 3. Install sklearn (if need it)
-$pip3 install sklearn
+```
+ pip3 install sklearn
+ ```
+
 ### 4. Install Jupyter (if need it)
-$pip3 install jupyter
+```
+ pip3 install jupyter
+ ```
+
 ### 5. Install MNE (more information here https://mne.tools/stable/install/mne_python.html)
-$pip3 install mne
+```
+ pip3 install mne
+ ```
+
 ### Install POT (more information here https://pythonot.github.io/)
-$conda install -c conda-forge pot
+```
+ conda install -c conda-forge pot
+ ```
+
 ### Install OTDA
 #### opt. 1: using git
-$git clone https://github.com/vpeterson/otda-mibci.git
+```
+ git clone https://github.com/vpeterson/otda-mibci.git
+```
+
 #### opt. 2: download this folder and unzip it
 
 ## Examples:
 ### Run example blockwise OTDA test
 #### locate where otda-mibci folder is:
-$cd otda-mibci
+```
+cd otda-mibci
+```
+
 #### run the notebook:
-$jupyter notebook Example_blockwise_MIOTDA.ipynb
+```
+jupyter notebook Example_blockwise_MIOTDA.ipynb
+```
+
 ### Run example samplewise OTDA test
 #### if located on the otda-mibci folder run the notebook:
-$jupyter notebook Example_blockwise_MIOTDA.ipynb
+```
+jupyter notebook Example_blockwise_MIOTDA.ipynb
+```
+
 
 ### And you are ready. Happy coding!
 
