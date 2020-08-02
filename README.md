@@ -26,17 +26,17 @@ $pip3 install mne
 ### Install POT 
 $conda install -c conda-forge pot
 ### Install OTDA
-opt. 1: using git
+#### opt. 1: using git
 $git clone https://github.com/vpeterson/otda-mibci.git
-opt. 2: download this folder and unzip it
+#### opt. 2: download this folder and unzip it
 ### Run example blockwise OTDA test
-locate where otda-mibci folder is:
+#### locate where otda-mibci folder is:
 $cd otda-mibci
-run the notebook:
+#### run the notebook:
 $jupyter notebook Example_blockwise_MIOTDA.ipynb
 ### run example samplewise OTDA test
-if located on the otda-mibci folder run the notebook:
+#### if located on the otda-mibci folder run the notebook:
 $jupyter notebook Example_blockwise_MIOTDA.ipynb
 
-And you are ready :)
+# And you are ready. Happy coding!
 
