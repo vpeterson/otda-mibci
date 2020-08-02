@@ -8,25 +8,35 @@ Two notebook examples are provided, each one for each online testing scenario co
 
 ## Requirements 
 ### (Python 3)
-# MNE
-# POT
-# SKLEARN
+1) MNE (https://mne.tools/stable/index.html)
+2) POT (https://github.com/PythonOT/POT)
+3) Scikit Learn (https://scikit-learn.org/stable/)
 
 ## Installation guidelines (based on Anaconda Distribution)
-### 1) create conda environment
-conda create --name otda pip
-### 2) Activate conda environment
-conda activate otda
-### 3) Install sklearn
-pip3 install sklearn
-### 4) Install Jupyter
-pip3 install jupyter
-### 5) install MNE (more information here https://mne.tools/stable/index.html)
-pip3 install mne
-### install POT (more information here ttps://github.com/PythonOT/POT)
-conda install -c conda-forge pot
-### install OTDA
-git clone https://github.com/vpeterson/otda-mibci.git
-### blockwise OTDA test
-cd otda-mibci
-jupyter notebook Example_blockwise_MIOTDA.ipynb
+### create conda environment
+$conda create --name otda pip
+### Activate conda environment
+$conda activate otda
+### Install sklearn
+$pip3 install sklearn
+### Install Jupyter
+$pip3 install jupyter
+### Install MNE
+$pip3 install mne
+### Install POT 
+$conda install -c conda-forge pot
+### Install OTDA
+opt. 1: using git
+$git clone https://github.com/vpeterson/otda-mibci.git
+opt. 2: download this folder and unzip it
+### Run example blockwise OTDA test
+locate where otda-mibci folder is:
+$cd otda-mibci
+run the notebook:
+$jupyter notebook Example_blockwise_MIOTDA.ipynb
+### run example samplewise OTDA test
+if located on the otda-mibci folder run the notebook:
+$jupyter notebook Example_blockwise_MIOTDA.ipynb
+
+And you are ready :)
+
