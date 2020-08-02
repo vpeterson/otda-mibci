@@ -24,12 +24,12 @@ conda create --name otda pip
 conda activate otda
 ```
 
-### 3. Install sklearn (if need it)
+### 3. Install sklearn (if needed)
 ```
  pip3 install sklearn
  ```
 
-### 4. Install Jupyter (if need it)
+### 4. Install Jupyter (if needed)
 ```
  pip3 install jupyter
  ```
@@ -42,7 +42,7 @@ conda activate otda
 ### Install POT (more information here https://pythonot.github.io/)
 ```
  conda install -c conda-forge pot
- ```
+```
 
 ### Install OTDA
 #### opt. 1: using git
