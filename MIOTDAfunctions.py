@@ -505,7 +505,7 @@ def SelectSubsetTraining_OTDAl1l2(xs, ys, xv, yv, rango_e, rango_cl, metrica="eu
 
     #sequence = [i for i in range(len(ys))]
 
-    for k in range(0, kfold):
+    for k in range(kfold):
         # idx = sample(sequence, M)  
         
         xs_daotcv, X_test, ys_daotcv, y_test = train_test_split(xs, ys, train_size=M, stratify=ys)
