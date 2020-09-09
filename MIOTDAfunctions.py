@@ -600,7 +600,7 @@ def SelectSubsetTraining_OTDAs(xs, ys, xv, yv, rango_e, metrica="euclidean", kfo
         # xs_daotcv=xs[idx]
         # ys_daotcv=ys[idx]   
         
-        regu=CVsinkhorn(rango=rango_e, xs=xs_daotcv, ys=ys_daotcv, xt=xv, yt=yv)
+        regu=CVsinkhorn(rango_e=rango_e, xs=xs_daotcv, ys=ys_daotcv, xt=xv, yt=yv)
         regu_.append(regu)
 
         ot_sinkhorn= ot.da.SinkhornTransport(metric=metrica,reg_e=regu)
