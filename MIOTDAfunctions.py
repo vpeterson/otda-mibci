@@ -36,6 +36,10 @@ def CVsinkhorn(rango_e, xs, ys, xt, yt, clf, metrica="euclidean", Verbose=None):
         best reg. parameter selected based on accuracy
     """
     ACC_ = []
+    
+    #select subset validation to avoid overfitting
+    
+        
     for r in range(np.size(rango_e)):
         ot_sinkhorn = ot.da.SinkhornTransport(metric=metrica,reg_e=rango_e[r], 
                                               verbose=Verbose)
@@ -277,11 +281,13 @@ def SelectSubsetTraining_BOTDAl1l2(xs, ys, xv, yv, rango_e, rango_cl, clf,
 
         lista_xs.append(xs_daotcv)
         lista_ys.append(ys_daotcv)
-
-        regu = CVgrouplasso_backward(
-            rango_e=rango_e, rango_cl=rango_cl,
-            xs=xs_daotcv, ys=ys_daotcv,
-            xt=xv, yt=yv, clf=clf, metrica=metrica, Verbose=Verbose)
+        if np.size(rango_e)==1 and np.size(rango_cl)==1:
+            regu = [rango_e, rango_cl]
+        else:
+            regu = CVgrouplasso_backward(
+                rango_e=rango_e, rango_cl=rango_cl,
+                xs=xs_daotcv, ys=ys_daotcv,
+                xt=xv, yt=yv, clf=clf, metrica=metrica, Verbose=Verbose)
 
         regu_.append(regu)
 
@@ -355,8 +361,10 @@ def SelectSubsetTraining_BOTDAs(xs, ys, xv, yv, rango_e, clf,
 
         lista_xs.append(xs_daotcv)
         lista_ys.append(ys_daotcv)
-
-        regu = CVsinkhorn_backward(rango_e, xs_daotcv, ys_daotcv, xv, yv, clf, metrica, Verbose)
+        if np.size(rango_e)==1:
+            regu = rango_e
+        else:
+            regu = CVsinkhorn_backward(rango_e, xs_daotcv, ys_daotcv, xv, yv, clf, metrica, Verbose)
         regu_.append(regu)
 
         bot = ot.da.SinkhornTransport(metric=metrica, reg_e=regu)
@@ -429,11 +437,14 @@ def SelectSubsetTraining_OTDAl1l2(xs, ys, xv, yv, rango_e, rango_cl, clf,
 
         lista_xs.append(xs_daotcv)
         lista_ys.append(ys_daotcv)
-
-        regu = CVgrouplasso(
-            rango_e=rango_e, rango_cl=rango_cl,
-            xs=xs_daotcv, ys=ys_daotcv, xt=xv, yt=yv, clf=clf,
-            metrica=metrica, Verbose=Verbose)
+        
+        if np.size(rango_e)==1 and np.size(rango_cl)==1:
+            regu = [rango_e, rango_cl]
+        else:
+            regu = CVgrouplasso(
+                rango_e=rango_e, rango_cl=rango_cl,
+                xs=xs_daotcv, ys=ys_daotcv, xt=xv, yt=yv, clf=clf,
+                metrica=metrica, Verbose=Verbose)
         regu_.append(regu)
 
         ot_l1l2 = ot.da.SinkhornL1l2Transport(
@@ -509,8 +520,11 @@ def SelectSubsetTraining_OTDAs(xs, ys, xv, yv, rango_e, clf,
 
         lista_xs.append(xs_daotcv)
         lista_ys.append(ys_daotcv)
-
-        regu=CVsinkhorn(rango_e=rango_e, xs=xs_daotcv, ys=ys_daotcv,
+        
+        if np.size(rango_e)==1:
+            regu = rango_e
+        else:
+            regu=CVsinkhorn(rango_e=rango_e, xs=xs_daotcv, ys=ys_daotcv,
                         xt=xv, yt=yv, clf=clf, metrica=metrica,
                         Verbose=Verbose)
         regu_.append(regu)
