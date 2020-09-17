@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 # functions
 
 
-def CVsinkhorn(rango_e, xs, ys, xt, yt, clf, metrica="euclidean", Verbose=None):
+def CVsinkhorn(rango_e, xs, ys, xt, yt, clf, metrica="sqeuclidean", Verbose=None, kfold=3):
     """
     This function search for the best reg. parameter based on accuracy
     within the OT-Sinkhorn method
@@ -36,30 +36,34 @@ def CVsinkhorn(rango_e, xs, ys, xt, yt, clf, metrica="euclidean", Verbose=None):
         best reg. parameter selected based on accuracy
     """
     ACC_ = []
-    
-    #select subset validation to avoid overfitting
-    
-        
+
+    # select subset validation to avoid overfitting
+
     for r in range(np.size(rango_e)):
         ot_sinkhorn = ot.da.SinkhornTransport(metric=metrica,reg_e=rango_e[r], 
                                               verbose=Verbose)
-        ot_sinkhorn.fit(Xs=xs, Xt=xt)
-        # transform
-        transp_Xs_sinkhorn = ot_sinkhorn.transform(Xs=xs)
-        # train new classifier
-        clf.fit(transp_Xs_sinkhorn, ys)
+        acc_cv=[]
+        for k in range(kfold):
+            xs_train, xs_test, ys_train, ys_test = train_test_split(
+                xs, ys, train_size=0.8, stratify=ys)
+            ot_sinkhorn.fit(Xs=xs_train, Xt=xt)
+            # transform
+            transp_Xs_sinkhorn = ot_sinkhorn.transform(Xs=xs_test)
+            # train new classifier
+            clf.fit(transp_Xs_sinkhorn, ys_test)
 
-        yt_predict = clf.predict(xt)
-        # Compute accuracy trad DOAT
-        acc_ = accuracy_score(yt, yt_predict)
-        ACC_.append(acc_)
+            yt_predict = clf.predict(xt)
+            # Compute accuracy trad DOAT
+            acc_cv.append(accuracy_score(yt, yt_predict))
+
+        ACC_.append(np.mean(acc_cv))
 
     index = np.argmax(ACC_)
     regu = rango_e[index]
     return regu
 
 
-def CVgrouplasso(rango_e, rango_cl, xs, ys, xt, yt, clf, metrica="euclidean", Verbose=None):
+def CVgrouplasso(rango_e, rango_cl, xs, ys, xt, yt, clf, metrica="sqeuclidean", Verbose=None, kfold=3):
     """
     This function search for the best set of reg. parameters within the OT-L1L2 
     method.
@@ -96,28 +100,33 @@ def CVgrouplasso(rango_e, rango_cl, xs, ys, xt, yt, clf, metrica="euclidean", Ve
 
     for r in range(np.size(rango_e)):
         for rr in range(np.size(rango_cl)):
-            # Sinkhorn Transport with Group lasso regularization
-            ot_l1l2 = ot.da.SinkhornL1l2Transport(
-                metric=metrica, reg_e=rango_e[r],
-                reg_cl=rango_cl[rr], verbose=Verbose)
-            ot_l1l2.fit(Xs=xs, ys=ys, Xt=xt)
+            acc_cv=[]
+            for k in range(kfold):
+                xs_train, xs_test, ys_train, ys_test = train_test_split(
+                    xs, ys, train_size=0.8, stratify=ys)
 
-            # transport source samples onto target samples
-            transp_Xs_lpl1 = ot_l1l2.transform(Xs=xs)
-            # train on new source
-            clf.fit(transp_Xs_lpl1, ys)
-            # Compute accuracy
-            yt_predict = clf.predict(xt)
-            acc_ = accuracy_score(yt, yt_predict)
+                # Sinkhorn Transport with Group lasso regularization
+                ot_l1l2 = ot.da.SinkhornL1l2Transport(
+                    metric=metrica, reg_e=rango_e[r],
+                    reg_cl=rango_cl[rr], verbose=Verbose)
+                ot_l1l2.fit(Xs=xs_train, ys=ys_train, Xt=xt)
+    
+                # transport source samples onto target samples
+                transp_Xs_lpl1 = ot_l1l2.transform(Xs=xs_test)
+                # train on new source
+                clf.fit(transp_Xs_lpl1, ys_test)
+                # Compute accuracy
+                yt_predict = clf.predict(xt)
+                acc_cv.append(accuracy_score(yt, yt_predict))
 
-            result[r, rr] = acc_
+            result[r, rr] = np.mean(acc_cv)
 
     index = unravel_index(result.argmax(), result.shape)
     regu = [rango_e[index[0]], rango_cl[index[1]]]
     return regu
 
 
-def CVgrouplasso_backward(rango_e, rango_cl, xs, ys, xt, yt, clf, metrica="euclidean", Verbose=False):
+def CVgrouplasso_backward(rango_e, rango_cl, xs, ys, xt, yt, clf, metrica="sqeuclidean", Verbose=False, kfold=3):
     """
     This function search for the best set of reg. parameters within the
     Backward OT-L1L2 method.
@@ -156,26 +165,31 @@ def CVgrouplasso_backward(rango_e, rango_cl, xs, ys, xt, yt, clf, metrica="eucli
     result = np.empty((np.size(rango_e), np.size(rango_cl)), dtype=float)
 
     for r in range(np.size(rango_e)):
-
         for rr in range(np.size(rango_cl)):
-            # Sinkhorn Transport with Group lasso regularization
-            bot_l1l2 = ot.da.SinkhornL1l2Transport(
-                metric=metrica, reg_e=rango_e[r], reg_cl=rango_cl[rr],
-                verbose=Verbose)
-            bot_l1l2.fit(Xs=xt, ys=yt, Xt=xs)
-            # transport target samples onto source samples
-            transp_Xt_lpl1 = bot_l1l2.transform(Xs=xt)
-            # Compute accuracy
-            yt_predict = clf.predict(transp_Xt_lpl1)
-            acc_ = accuracy_score(yt, yt_predict)
-            result[r, rr] = acc_
+            acc_cv=[]
+            for k in range(kfold):
+                xt_train, xt_test, yt_train, yt_test = train_test_split(
+                    xt, yt, train_size=0.8, stratify=yt)
+
+                # Sinkhorn Transport with Group lasso regularization
+                bot_l1l2 = ot.da.SinkhornL1l2Transport(
+                    metric=metrica, reg_e=rango_e[r], reg_cl=rango_cl[rr],
+                    verbose=Verbose)
+                bot_l1l2.fit(Xs=xt_train, ys=yt_train, Xt=xs)
+                # transport target samples onto source samples
+                transp_Xt_lpl1 = bot_l1l2.transform(Xs=xt_test)
+                # Compute accuracy
+                yt_predict = clf.predict(transp_Xt_lpl1)
+                acc_cv.append(accuracy_score(yt_test, yt_predict))
+                
+            result[r, rr] = np.mean(acc_cv)
     index = unravel_index(result.argmax(), result.shape)
     regu = [rango_e[index[0]], rango_cl[index[1]]]
 
     return regu
 
 
-def CVsinkhorn_backward(rango_e, xs, ys, xt, yt, clf, metrica="euclidean", Verbose=False):
+def CVsinkhorn_backward(rango_e, xs, ys, xt, yt, clf, metrica="sqeuclidean", Verbose=False, kfold=3):
     """
     This function search for the best set of reg. parameters within the
     OT-Sinkhorn method.
@@ -210,18 +224,22 @@ def CVsinkhorn_backward(rango_e, xs, ys, xt, yt, clf, metrica="euclidean", Verbo
     result = []
 
     for r in range(np.size(rango_e)):
-        # Sinkhorn Transport with Group lasso regularization
-        bot = ot.da.SinkhornTransport(metric=metrica, reg_e=rango_e[r], 
-                                      verbose=Verbose)
-        bot.fit(Xs=xt, ys=yt, Xt=xs)
-        # transport target samples onto spurce samples
-        transp_Xt_lpl1 = bot.transform(Xs=xt)
-
-        # Compute accuracy
-        yt_predict = clf.predict(transp_Xt_lpl1)
-        acc_ = accuracy_score(yt, yt_predict)
-
-        result.append(acc_)
+        acc_cv=[]
+        for k in range(kfold):
+            xt_train, xt_test, yt_train, yt_test = train_test_split(
+                xt, yt, train_size=0.8, stratify=yt)
+            # Sinkhorn Transport with Group lasso regularization
+            bot = ot.da.SinkhornTransport(metric=metrica, reg_e=rango_e[r], 
+                                          verbose=Verbose)
+            bot.fit(Xs=xt_train, ys=yt_train, Xt=xs)
+            # transport target samples onto spurce samples
+            transp_Xt_lpl1 = bot.transform(Xs=xt_test)
+    
+            # Compute accuracy
+            yt_predict = clf.predict(transp_Xt_lpl1)
+            acc_cv.append(accuracy_score(yt_test, yt_predict))
+    
+        result.append(np.mean(acc_cv))
 
     result = np.asarray(result)
     index = np.argmax(result)
@@ -230,7 +248,7 @@ def CVsinkhorn_backward(rango_e, xs, ys, xt, yt, clf, metrica="euclidean", Verbo
 
 
 def SelectSubsetTraining_BOTDAl1l2(xs, ys, xv, yv, rango_e, rango_cl, clf,
-                                   metrica="euclidean", kfold=20, M=40,
+                                   metrica="sqeuclidean", kfold=20, M=40,
                                    Verbose=False):
     """
     select subset of source data to learn the mapping.
