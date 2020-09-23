@@ -1,22 +1,23 @@
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-import numpy as np # always need it
+import numpy as np
 from numpy import unravel_index
 import ot
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
 # functions
+# Autor: Victoria Peterson <vpeterson@santafe-conicet.gov.ar>
 
 
-def CVsinkhorn(rango_e, xs, ys, xt, yt, clf, metrica="sqeuclidean", Verbose=None, kfold=3):
+def CVsinkhorn(rango_e, xs, ys, xt, yt, clf, metrica="sqeuclidean", 
+               kfold=None, Verbose=False):
     """
     This function search for the best reg. parameter based on accuracy
     within the OT-Sinkhorn method
     Parameters
     ----------
-    rango_E : array/np.array
+    rango_e : list
         grid of parameter values from the regularization term for entropic
-        regularization
+        regularization. list can have only one value
     xs : ns x m array, where ns is the number of trials and m the number of
     samples.
         Source data matrix.
@@ -27,55 +28,79 @@ def CVsinkhorn(rango_e, xs, ys, xt, yt, clf, metrica="sqeuclidean", Verbose=None
         Target data matrix.
     yt : nt array
         target label information.
+    clf : model 
+        classifier to be trained by the transported source samples.
     metrica : string, optional
-        distance used within OT. The default is "euclidean".
+        distance used within OT. The default is "sqeuclidean".
+    kfold : dict, optional
+        dictionary which contains in "nfold" the number of fold to run the 
+        kfold cross-validation and "train_size" a value between 0 and 1
+        which indicate the percentage of data keep for training.
+        The default is None.
+    Verbose : bool, optional
+        DESCRIPTION. The default is False.
 
     Returns
     -------
     regu: float
         best reg. parameter selected based on accuracy
+
     """
-    ACC_ = []
+    result = []
 
     # select subset validation to avoid overfitting
 
     for r in range(np.size(rango_e)):
-        ot_sinkhorn = ot.da.SinkhornTransport(metric=metrica,reg_e=rango_e[r], 
+        ot_sinkhorn = ot.da.SinkhornTransport(metric=metrica,reg_e=rango_e[r],
                                               verbose=Verbose)
-        acc_cv=[]
-        for k in range(kfold):
-            xs_train, xs_test, ys_train, ys_test = train_test_split(
-                xs, ys, train_size=0.8, stratify=ys)
-            ot_sinkhorn.fit(Xs=xs_train, Xt=xt)
+        acc_cv = []
+        if kfold is None:
+            ot_sinkhorn.fit(Xs=xs, Xt=xt)
             # transform
-            transp_Xs_sinkhorn = ot_sinkhorn.transform(Xs=xs_test)
+            transp_Xs_sinkhorn = ot_sinkhorn.transform(Xs=xs)
             # train new classifier
-            clf.fit(transp_Xs_sinkhorn, ys_test)
+            clf.fit(transp_Xs_sinkhorn, ys)
 
             yt_predict = clf.predict(xt)
             # Compute accuracy trad DOAT
-            acc_cv.append(accuracy_score(yt, yt_predict))
+            acc_ = accuracy_score(yt, yt_predict)
 
-        ACC_.append(np.mean(acc_cv))
+            result.append(acc_)
+        else:
+            for k in range(kfold["nfold"]):
+                xs_train, xs_test, ys_train, ys_test = train_test_split(
+                    xs, ys, train_size=kfold["train_size"], stratify=ys)
+                ot_sinkhorn.fit(Xs=xs_train, Xt=xt)
+                # transform
+                transp_Xs_sinkhorn = ot_sinkhorn.transform(Xs=xs_test)
+                # train new classifier
+                clf.fit(transp_Xs_sinkhorn, ys_test)
 
-    index = np.argmax(ACC_)
+                yt_predict = clf.predict(xt)
+                # Compute accuracy trad DOAT
+                acc_cv.append(accuracy_score(yt, yt_predict))
+
+            result.append(np.mean(acc_cv))
+
+    index = np.argmax(result)
     regu = rango_e[index]
     return regu
 
 
-def CVgrouplasso(rango_e, rango_cl, xs, ys, xt, yt, clf, metrica="sqeuclidean", Verbose=None, kfold=3):
+def CVgrouplasso(rango_e, rango_cl, xs, ys, xt, yt, clf, metrica="sqeuclidean",
+                 kfold=None, Verbose=False):
     """
-    This function search for the best set of reg. parameters within the OT-L1L2 
+    This function search for the best set of reg. parameters within the OT-L1L2
     method.
 
     Parameters
     ----------
-    rango_e : array/np.array
+    rango_e : list
         grid of parameter values from the regularization term for entropic
-        regularization
-    rango_cl : array/np.array
+        regularization. list can have only one value
+    rango_cl : list
         grid of parameter values from the regularization term  for group lasso
-        regularization
+        regularization. list can have only one value
     xs : ns x m array, where ns is the number of trials and m the number of
     samples.
         Source data matrix.
@@ -86,12 +111,21 @@ def CVgrouplasso(rango_e, rango_cl, xs, ys, xt, yt, clf, metrica="sqeuclidean", 
         Target data matrix.
     yt : nt array
         target label information.
+    clf : model
+        classifier to be trained by the transported source samples.
     metrica : string, optional
-        distance used within OT. The default is "euclidean".
+        distance used within OT. The default is "sqeuclidean".
+    kfold : dict, optional
+        dictionary which contains in "nfold" the number of fold to run the
+        kfold cross-validation and "train_size" a value between 0 and 1
+        which indicate the percentage of data keep for training.
+        The default is None.
+    Verbose : bool, optional
+        DESCRIPTION. The default is False.
 
     Returns
     -------
-    regu : tuple (2)
+    regu : list
         vector with the best reg. parameter for the FOTDA-GL
         regu_trad[0]: entropic regularizer param
         regu_trad[1]; group-lasso regulatizer param
@@ -100,45 +134,59 @@ def CVgrouplasso(rango_e, rango_cl, xs, ys, xt, yt, clf, metrica="sqeuclidean", 
 
     for r in range(np.size(rango_e)):
         for rr in range(np.size(rango_cl)):
-            acc_cv=[]
-            for k in range(kfold):
-                xs_train, xs_test, ys_train, ys_test = train_test_split(
-                    xs, ys, train_size=0.8, stratify=ys)
-
-                # Sinkhorn Transport with Group lasso regularization
-                ot_l1l2 = ot.da.SinkhornL1l2Transport(
+            acc_cv = []
+            ot_l1l2 = ot.da.SinkhornL1l2Transport(
                     metric=metrica, reg_e=rango_e[r],
                     reg_cl=rango_cl[rr], verbose=Verbose)
-                ot_l1l2.fit(Xs=xs_train, ys=ys_train, Xt=xt)
-    
+            if kfold is None:
+                ot_l1l2.fit(Xs=xs, ys=ys, Xt=xt)
+
                 # transport source samples onto target samples
-                transp_Xs_lpl1 = ot_l1l2.transform(Xs=xs_test)
+                transp_Xs_lpl1 = ot_l1l2.transform(Xs=xs)
                 # train on new source
-                clf.fit(transp_Xs_lpl1, ys_test)
+                clf.fit(transp_Xs_lpl1, ys)
                 # Compute accuracy
                 yt_predict = clf.predict(xt)
-                acc_cv.append(accuracy_score(yt, yt_predict))
+                acc_ = accuracy_score(yt, yt_predict)
 
-            result[r, rr] = np.mean(acc_cv)
+                result[r, rr] = acc_
+            else:
+                for k in range(kfold["nfold"]):
+                    xs_train, xs_test, ys_train, ys_test = train_test_split(
+                        xs, ys, train_size=kfold["train_size"], stratify=ys)
+
+                    # Sinkhorn Transport with Group lasso regularization
+                    ot_l1l2.fit(Xs=xs_train, ys=ys_train, Xt=xt)
+
+                    # transport source samples onto target samples
+                    transp_Xs_lpl1 = ot_l1l2.transform(Xs=xs_test)
+                    # train on new source
+                    clf.fit(transp_Xs_lpl1, ys_test)
+                    # Compute accuracy
+                    yt_predict = clf.predict(xt)
+                    acc_cv.append(accuracy_score(yt, yt_predict))
+
+                result[r, rr] = np.mean(acc_cv)
 
     index = unravel_index(result.argmax(), result.shape)
     regu = [rango_e[index[0]], rango_cl[index[1]]]
     return regu
 
 
-def CVgrouplasso_backward(rango_e, rango_cl, xs, ys, xt, yt, clf, metrica="sqeuclidean", Verbose=False, kfold=3):
+def CVgrouplasso_backward(rango_e, rango_cl, xs, ys, xt, yt, clf,
+                          metrica="sqeuclidean", kfold=None, Verbose=False):
     """
     This function search for the best set of reg. parameters within the
     Backward OT-L1L2 method.
 
     Parameters
     ----------
-    rango_e : array/np.array
+    rango_e : list
         grid of parameter values from the regularization term for entropic
-        regularization
-    rango_cl : array/np.array
+        regularization. list can have only one value
+    rango_cl : list
         grid of parameter values from the regularization term  for group lasso
-        regularization
+        regularization. list can have only one value
     xs : ns x m array, where ns is the number of trials and m the number of
     samples.
         Source data matrix.
@@ -149,16 +197,25 @@ def CVgrouplasso_backward(rango_e, rango_cl, xs, ys, xt, yt, clf, metrica="sqeuc
         Target data matrix.
     yt : nt array
         target label information.
+    clf : model
+        classifier ALREADY trained on SOURCE data. Used to predict
+        transported target samples.
     metrica : string, optional
-        distance used within OT. The default is "euclidean".
+        distance used within OT. The default is "sqeuclidean".
+    kfold : dict, optional
+        dictionary which contains in "nfold" the number of fold to run the
+        kfold cross-validation and "train_size" a value between 0 and 1
+        which indicate the percentage of data keep for training.
+        The default is None.
+    Verbose : bool, optional
+        DESCRIPTION. The default is False.
 
     Returns
     -------
-    regu : tuple (2)
+    regu : list
         vector with the best reg. parameter for the FOTDA-GL
         regu_trad[0]: entropic regularizer param
         regu_trad[1]; group-lasso regulatizer param
-
 
 
     """
@@ -166,42 +223,51 @@ def CVgrouplasso_backward(rango_e, rango_cl, xs, ys, xt, yt, clf, metrica="sqeuc
 
     for r in range(np.size(rango_e)):
         for rr in range(np.size(rango_cl)):
-            acc_cv=[]
-            for k in range(kfold):
-                xt_train, xt_test, yt_train, yt_test = train_test_split(
-                    xt, yt, train_size=0.8, stratify=yt)
-
-                # Sinkhorn Transport with Group lasso regularization
-                bot_l1l2 = ot.da.SinkhornL1l2Transport(
+            acc_cv = []
+            bot_l1l2 = ot.da.SinkhornL1l2Transport(
                     metric=metrica, reg_e=rango_e[r], reg_cl=rango_cl[rr],
                     verbose=Verbose)
-                bot_l1l2.fit(Xs=xt_train, ys=yt_train, Xt=xs)
+            if kfold is None:
+                bot_l1l2.fit(Xs=xt, ys=yt, Xt=xs)
                 # transport target samples onto source samples
-                transp_Xt_lpl1 = bot_l1l2.transform(Xs=xt_test)
+                transp_Xt_lpl1 = bot_l1l2.transform(Xs=xt)
                 # Compute accuracy
                 yt_predict = clf.predict(transp_Xt_lpl1)
-                acc_cv.append(accuracy_score(yt_test, yt_predict))
-                
-            result[r, rr] = np.mean(acc_cv)
+                acc_ = accuracy_score(yt, yt_predict)
+
+                result[r, rr] = acc_
+            else:
+
+                for k in range(kfold["nfold"]):
+                    xt_train, xt_test, yt_train, yt_test = train_test_split(
+                        xt, yt, train_size=kfold["train_size"], stratify=yt)
+
+                    # Sinkhorn Transport with Group lasso regularizatio
+                    bot_l1l2.fit(Xs=xt_train, ys=yt_train, Xt=xs)
+                    # transport target samples onto source samples
+                    transp_Xt_lpl1 = bot_l1l2.transform(Xs=xt_test)
+                    # Compute accuracy
+                    yt_predict = clf.predict(transp_Xt_lpl1)
+                    acc_cv.append(accuracy_score(yt_test, yt_predict))
+
+                result[r, rr] = np.mean(acc_cv)
     index = unravel_index(result.argmax(), result.shape)
     regu = [rango_e[index[0]], rango_cl[index[1]]]
 
     return regu
 
 
-def CVsinkhorn_backward(rango_e, xs, ys, xt, yt, clf, metrica="sqeuclidean", Verbose=False, kfold=3):
+def CVsinkhorn_backward(rango_e, xs, ys, xt, yt, clf, metrica="sqeuclidean",
+                        kfold=None, Verbose=False):
     """
     This function search for the best set of reg. parameters within the
     OT-Sinkhorn method.
 
     Parameters
     ----------
-    rango_e : array/np.array
+    rango_e : list
         grid of parameter values from the regularization term for entropic
-        regularization
-    rango_cl : array/np.array
-        grid of parameter values from the regularization term  for group lasso
-        regularization
+        regularization. list can have only one value
     xs : ns x m array, where ns is the number of trials and m the number of
     samples.
         Source data matrix.
@@ -212,8 +278,18 @@ def CVsinkhorn_backward(rango_e, xs, ys, xt, yt, clf, metrica="sqeuclidean", Ver
         Target data matrix.
     yt : nt array
         target label information.
+    clf : model
+        classifier ALREADY trained on SOURCE data. Used to predict
+        transported target samples.
     metrica : string, optional
-        distance used within OT. The default is "euclidean".
+        distance used within OT. The default is "sqeuclidean".
+    kfold : dict, optional
+        dictionary which contains in "nfold" the number of fold to run the 
+        kfold cross-validation and "train_size" a value between 0 and 1
+        which indicate the percentage of data keep for training.
+        The default is None.
+    Verbose : bool, optional
+        DESCRIPTION. The default is False.
 
     Returns
     -------
@@ -224,22 +300,36 @@ def CVsinkhorn_backward(rango_e, xs, ys, xt, yt, clf, metrica="sqeuclidean", Ver
     result = []
 
     for r in range(np.size(rango_e)):
-        acc_cv=[]
-        for k in range(kfold):
-            xt_train, xt_test, yt_train, yt_test = train_test_split(
-                xt, yt, train_size=0.8, stratify=yt)
-            # Sinkhorn Transport with Group lasso regularization
-            bot = ot.da.SinkhornTransport(metric=metrica, reg_e=rango_e[r], 
+        acc_cv = []
+        bot = ot.da.SinkhornTransport(metric=metrica, reg_e=rango_e[r],
                                           verbose=Verbose)
-            bot.fit(Xs=xt_train, ys=yt_train, Xt=xs)
+        if kfold is None:
+            # Sinkhorn Transport with Group lasso regularization
+            bot.fit(Xs=xt, ys=yt, Xt=xs)
+
             # transport target samples onto spurce samples
-            transp_Xt_lpl1 = bot.transform(Xs=xt_test)
-    
+            transp_Xt_lpl1 = bot.transform(Xs=xt)
+
             # Compute accuracy
             yt_predict = clf.predict(transp_Xt_lpl1)
-            acc_cv.append(accuracy_score(yt_test, yt_predict))
-    
-        result.append(np.mean(acc_cv))
+            acc_ = accuracy_score(yt, yt_predict)
+
+            result.append(acc_)
+        else:
+            for k in range(kfold["nfold"]):
+                xt_train, xt_test, yt_train, yt_test = train_test_split(
+                    xt, yt, train_size=kfold["train_size"], stratify=yt)
+                # Sinkhorn Transport with Group lasso regularization
+                bot.fit(Xs=xt_train, ys=yt_train, Xt=xs)
+
+                # transport target samples onto spurce samples
+                transp_Xt_lpl1 = bot.transform(Xs=xt_test)
+
+                # Compute accuracy
+                yt_predict = clf.predict(transp_Xt_lpl1)
+                acc_cv.append(accuracy_score(yt_test, yt_predict))
+
+            result.append(np.mean(acc_cv))
 
     result = np.asarray(result)
     index = np.argmax(result)
@@ -248,10 +338,12 @@ def CVsinkhorn_backward(rango_e, xs, ys, xt, yt, clf, metrica="sqeuclidean", Ver
 
 
 def SelectSubsetTraining_BOTDAl1l2(xs, ys, xv, yv, rango_e, rango_cl, clf,
-                                   metrica="sqeuclidean", kfold=20, M=40,
-                                   Verbose=False):
+                                    metrica="sqeuclidean", outerkfold=20,
+                                    innerkfold=None, M=40,
+                                    Verbose=False):
     """
-    select subset of source data to learn the mapping.
+    select subset of source data to learn the mapping and the best regu
+    parameters for that subset.
 
     Parameters
     ----------
@@ -263,18 +355,28 @@ def SelectSubsetTraining_BOTDAl1l2(xs, ys, xv, yv, rango_e, rango_cl, clf,
         transportation matrix.
     yv : array (nv,)
         labels transportation set samples.
-    rango_e : array/np.array
+    rango_e : list
         grid of parameter values from the regularization term for entropic
-        regularization
-    rango_cl : array/np.array
-        grid of parameter values from the regularization term  for group
-        lasso regularization
-    metrica : string, optional
-        distance used within OT. The default is "euclidean".
-    kfold : number, optional
+        regularization. list can have only one value.
+    rango_cl : list
+        grid of parameter values from the regularization term  for group lasso
+        regularization. list can have only one value.
+    clf : model
+        classifier ALREADY trained on Source data. 
+        Used to make the prediction on the transported target samples.
+    metrica : TYPE, optional
+        DESCRIPTION. The default is "sqeuclidean".
+    outerkfold : number, optional
         times to repeat the resample. The default is 20.
+    innerkfold : dict, optional
+        dictionary which contains in "nfold" the number of fold to run the
+        kfold cross-validation and "train_size" a value between 0 and 1
+        which indicate the percentage of data keep for training.
+        The default is None.
     M : number, optional
         final samples included in the subset. The default is 40.
+    Verbose : TYPE, optional
+        DESCRIPTION. The default is False.
 
     Returns
     -------
@@ -282,10 +384,9 @@ def SelectSubsetTraining_BOTDAl1l2(xs, ys, xv, yv, rango_e, rango_cl, clf,
         best selected subset
     subset_ys: (M,)
         corresponding labels of the selected subset_xs
-    reg_best: array(2,1)
-        regularization parameter for the entropic and and  the group lasso
+    reg_best: list
+        regularization parameter for the entropic and the group lasso
         terms.
-
     """
 
     acc_cv = []
@@ -294,18 +395,17 @@ def SelectSubsetTraining_BOTDAl1l2(xs, ys, xv, yv, rango_e, rango_cl, clf,
 
     regu_ = []
 
-    for k in range(kfold):
+    for k in range(outerkfold):
         xs_daotcv, X_test, ys_daotcv, y_test = train_test_split(xs, ys, train_size=M, stratify=ys)
 
         lista_xs.append(xs_daotcv)
         lista_ys.append(ys_daotcv)
-        if np.size(rango_e)==1 and np.size(rango_cl)==1:
+        if np.size(rango_e) == 1 and np.size(rango_cl) == 1:
             regu = [rango_e, rango_cl]
         else:
-            regu = CVgrouplasso_backward(
-                rango_e=rango_e, rango_cl=rango_cl,
-                xs=xs_daotcv, ys=ys_daotcv,
-                xt=xv, yt=yv, clf=clf, metrica=metrica, Verbose=Verbose)
+            regu = CVgrouplasso_backward(rango_e, rango_cl, xs_daotcv,
+                                          ys_daotcv, xv, yv, clf, metrica,
+                                          kfold=innerkfold, Verbose=Verbose)
 
         regu_.append(regu)
 
@@ -313,7 +413,7 @@ def SelectSubsetTraining_BOTDAl1l2(xs, ys, xv, yv, rango_e, rango_cl, clf,
             metric=metrica, reg_e=regu[0], reg_cl=regu[1])
 
         bot_l1l2.fit(Xs=xv, ys=yv, Xt=xs_daotcv)
-        # transport testing sampless
+        # transport val sampless
         transp_Xv_l1l2 = bot_l1l2.transform(Xs=xv)
         acc_cv.append(clf.score(transp_Xv_l1l2, yv))
 
@@ -326,10 +426,12 @@ def SelectSubsetTraining_BOTDAl1l2(xs, ys, xv, yv, rango_e, rango_cl, clf,
 
 
 def SelectSubsetTraining_BOTDAs(xs, ys, xv, yv, rango_e, clf,
-                                metrica="euclidean", kfold=20, M=40,
+                                metrica="sqeuclidean", outerkfold=20, 
+                                innerkfold=None, M=40,
                                 Verbose=False):
     """
-    select subset of source data to learn the mapping.
+    select subset of source data to learn the mapping and the best regu
+    parameters for that subset.
 
     Parameters
     ----------
@@ -341,21 +443,25 @@ def SelectSubsetTraining_BOTDAs(xs, ys, xv, yv, rango_e, clf,
         transportation matrix.
     yv : array (nv,)
         labels transportation set samples.
-    rango_e : array/np.array
+    rango_e : list
         grid of parameter values from the regularization term for entropic
-        regularization
-    rango_cl : array/np.array
-        grid of parameter values from the regularization term  for group lasso
-        regularization
-    metrica : string, optional
-        distance used within OT. The default is "euclidean".
-    kfold : number, optional
+        regularization. list can have only one value.
+    clf : model
+        classifier ALREADY trained on Source data. 
+        Used to make the prediction on the transported target samples.
+    metrica : TYPE, optional
+        DESCRIPTION. The default is "sqeuclidean".
+    outerkfold : number, optional
         times to repeat the resample. The default is 20.
+    innerkfold : dict, optional
+        dictionary which contains in "nfold" the number of fold to run the
+        kfold cross-validation and "train_size" a value between 0 and 1
+        which indicate the percentage of data keep for training.
+        The default is None.
     M : number, optional
         final samples included in the subset. The default is 40.
-    trad : boolean, optional
-        if True the outputs are calculard following the re-training OTDA path,
-        othverwise, the one-trainig path is followed. The default is True.
+    Verbose : TYPE, optional
+        DESCRIPTION. The default is False.
 
     Returns
     -------
@@ -363,9 +469,8 @@ def SelectSubsetTraining_BOTDAs(xs, ys, xv, yv, rango_e, clf,
         best selected subset
     subset_ys: (M,)
         corresponding labels of the selected subset_xs
-    reg_best: number
-        regularization parameter for the entropic
-
+    reg_best: float
+        regularization parameter for the entropic term
     """
     acc_cv = []
     lista_xs = []
@@ -373,16 +478,17 @@ def SelectSubsetTraining_BOTDAs(xs, ys, xv, yv, rango_e, clf,
 
     regu_ = []
 
-    for k in range(kfold):
+    for k in range(outerkfold):
         xs_daotcv, X_test, ys_daotcv, y_test = train_test_split(
             xs, ys, train_size=M, stratify=ys)
 
         lista_xs.append(xs_daotcv)
         lista_ys.append(ys_daotcv)
-        if np.size(rango_e)==1:
+        if np.size(rango_e) == 1:
             regu = rango_e
         else:
-            regu = CVsinkhorn_backward(rango_e, xs_daotcv, ys_daotcv, xv, yv, clf, metrica, Verbose)
+            regu = CVsinkhorn_backward(rango_e, xs_daotcv, ys_daotcv, xv, yv,
+                                        clf, metrica, innerkfold, Verbose)
         regu_.append(regu)
 
         bot = ot.da.SinkhornTransport(metric=metrica, reg_e=regu)
@@ -401,10 +507,12 @@ def SelectSubsetTraining_BOTDAs(xs, ys, xv, yv, rango_e, clf,
 
 
 def SelectSubsetTraining_OTDAl1l2(xs, ys, xv, yv, rango_e, rango_cl, clf,
-                                  metrica="euclidean", kfold=20, M=40,
+                                  metrica="sqeuclidean", outerkfold=20,
+                                  innerkfold=None, M=40,
                                   Verbose=False):
     """
-    select subset of source data to learn the mapping.
+    select subset of source data to learn the mapping and the best regu
+    parameters for that subset.
 
     Parameters
     ----------
@@ -416,21 +524,27 @@ def SelectSubsetTraining_OTDAl1l2(xs, ys, xv, yv, rango_e, rango_cl, clf,
         transportation matrix.
     yv : array (nv,)
         labels transportation set samples.
-    rango_e : array/np.array
+    rango_e : list
         grid of parameter values from the regularization term for entropic
-        regularization
-    rango_cl : array/np.array
-        grid of parameter values from the regularization term  for group lasso 
-        regularization
-    metrica : string, optional
-        distance used within OT. The default is "euclidean".
-    kfold : number, optional
+        regularization. list can have only one value.
+    rango_cl : list
+        grid of parameter values from the regularization term  for group lasso
+        regularization. list can have only one value.
+    clf : model
+        classifier to be trained by the transported source samples.
+    metrica : TYPE, optional
+        DESCRIPTION. The default is "sqeuclidean".
+    outerkfold : number, optional
         times to repeat the resample. The default is 20.
+    innerkfold : dict, optional
+        dictionary which contains in "nfold" the number of fold to run the
+        kfold cross-validation and "train_size" a value between 0 and 1
+        which indicate the percentage of data keep for training.
+        The default is None.
     M : number, optional
         final samples included in the subset. The default is 40.
-    trad : boolean, optional
-        if True the outputs are calculard following the re-training OTDA path,
-        othverwise, the one-trainig path is followed. The default is True.
+    Verbose : TYPE, optional
+        DESCRIPTION. The default is False.
 
     Returns
     -------
@@ -438,10 +552,9 @@ def SelectSubsetTraining_OTDAl1l2(xs, ys, xv, yv, rango_e, rango_cl, clf,
         best selected subset
     subset_ys: (M,)
         corresponding labels of the selected subset_xs
-    reg_best: array(2,1)
-        regularization parameter for the entropic and and  the group lasso 
+    reg_best: list
+        regularization parameter for the entropic and the group lasso
         terms.
-
     """
     acc_cv = []
     lista_xs = []
@@ -449,20 +562,18 @@ def SelectSubsetTraining_OTDAl1l2(xs, ys, xv, yv, rango_e, rango_cl, clf,
 
     regu_ = []
 
-    for k in range(kfold):        
+    for k in range(outerkfold):        
         xs_daotcv, X_test, ys_daotcv, y_test = train_test_split(
                                             xs, ys, train_size=M, stratify=ys)
 
         lista_xs.append(xs_daotcv)
         lista_ys.append(ys_daotcv)
-        
-        if np.size(rango_e)==1 and np.size(rango_cl)==1:
-            regu = [rango_e, rango_cl]
+
+        if np.size(rango_e) == 1 and np.size(rango_cl) == 1:
+            regu = [rango_e[0], rango_cl[0]]
         else:
-            regu = CVgrouplasso(
-                rango_e=rango_e, rango_cl=rango_cl,
-                xs=xs_daotcv, ys=ys_daotcv, xt=xv, yt=yv, clf=clf,
-                metrica=metrica, Verbose=Verbose)
+            regu = CVgrouplasso(rango_e, rango_cl, xs_daotcv, ys_daotcv,
+                                xv, yv, clf, metrica, innerkfold, Verbose)
         regu_.append(regu)
 
         ot_l1l2 = ot.da.SinkhornL1l2Transport(
@@ -473,7 +584,7 @@ def SelectSubsetTraining_OTDAl1l2(xs, ys, xv, yv, rango_e, rango_cl, clf,
         # transport source samples
         transp_Xs_l1l2 = ot_l1l2.transform(Xs=xs)
 
-        # lda
+        # clf fit
         clf.fit(transp_Xs_l1l2, ys)
         acc_cv.append(clf.score(xv, yv))
 
@@ -486,9 +597,11 @@ def SelectSubsetTraining_OTDAl1l2(xs, ys, xv, yv, rango_e, rango_cl, clf,
 
 def SelectSubsetTraining_OTDAs(xs, ys, xv, yv, rango_e, clf,
                                metrica="euclidean",
-                               kfold=20, M=40, Verbose=False):
+                               outerkfold=20, innerkfold=None,
+                               M=40, Verbose=False):
     """
-    select subset of source data to learn the mapping.
+    select subset of source data to learn the mapping and the best regu
+    parameters for that subset.
 
     Parameters
     ----------
@@ -500,21 +613,24 @@ def SelectSubsetTraining_OTDAs(xs, ys, xv, yv, rango_e, clf,
         transportation matrix.
     yv : array (nv,)
         labels transportation set samples.
-    rango_e : array/np.array
+    rango_e : list
         grid of parameter values from the regularization term for entropic
         regularization
-    rango_cl : array/np.array
-        grid of parameter values from the regularization term  for group lasso
-        regularization
-    metrica : string, optional
-        distance used within OT. The default is "euclidean".
-    kfold : number, optional
+    clf : model
+        classifier to be trained by the transported source samples.
+    metrica : TYPE, optional
+        DESCRIPTION. The default is "sqeuclidean".
+    outerkfold : number, optional
         times to repeat the resample. The default is 20.
+    innerkfold : dict, optional
+        dictionary which contains in "nfold" the number of fold to run the
+        kfold cross-validation and "train_size" a value between 0 and 1
+        which indicate the percentage of data keep for training.
+        The default is None.
     M : number, optional
         final samples included in the subset. The default is 40.
-    trad : boolean, optional
-        if True the outputs are calculard following the re-training OTDA path,
-        othverwise, the one-trainig path is followed. The default is True.
+    Verbose : TYPE, optional
+        DESCRIPTION. The default is False.
 
     Returns
     -------
@@ -524,7 +640,6 @@ def SelectSubsetTraining_OTDAs(xs, ys, xv, yv, rango_e, clf,
         corresponding labels of the selected subset_xs
     reg_best: number
         regularization parameter for the entropic
-
     """
     acc_cv = []
     lista_xs = []
@@ -532,32 +647,31 @@ def SelectSubsetTraining_OTDAs(xs, ys, xv, yv, rango_e, clf,
 
     regu_ = []
 
-    for k in range(0, kfold):
+    for k in range(outerkfold):
         xs_daotcv, X_test, ys_daotcv, y_test = train_test_split(
             xs, ys, train_size=M, stratify=ys)
 
         lista_xs.append(xs_daotcv)
         lista_ys.append(ys_daotcv)
-        
-        if np.size(rango_e)==1:
-            regu = rango_e
+
+        if np.size(rango_e) == 1:
+            regu = rango_e[0]
         else:
-            regu=CVsinkhorn(rango_e=rango_e, xs=xs_daotcv, ys=ys_daotcv,
-                        xt=xv, yt=yv, clf=clf, metrica=metrica,
-                        Verbose=Verbose)
+            regu=CVsinkhorn(rango_e, xs_daotcv, ys_daotcv, xv, yv, clf, 
+                            metrica, innerkfold, Verbose)
         regu_.append(regu)
 
         ot_sinkhorn = ot.da.SinkhornTransport(metric=metrica, reg_e=regu)
         ot_sinkhorn.fit(Xs=xs_daotcv, ys=ys_daotcv, Xt=xv)
         transp_Xs_sinkhorn = ot_sinkhorn.transform(Xs=xs)
 
-        # lda
+        # clf fit
         clf.fit(transp_Xs_sinkhorn, ys)
         acc_cv.append(clf.score(xv, yv))
 
     index = np.argmax(acc_cv)
     subset_xs = lista_xs[index]
     subset_ys = lista_ys[index]
-    
+
     reg_best = regu_[index]
     return subset_xs, subset_ys, reg_best
