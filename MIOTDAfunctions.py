@@ -1,4 +1,5 @@
 import numpy as np
+np.set_printoptions(precision=3)
 from numpy import unravel_index
 import ot
 from sklearn.metrics import accuracy_score
@@ -51,10 +52,12 @@ def CVsinkhorn(rango_e, xs, ys, xt, yt, clf, metrica="sqeuclidean",
     # select subset validation to avoid overfitting
 
     for r in range(np.size(rango_e)):
-        ot_sinkhorn = ot.da.SinkhornTransport(metric=metrica,reg_e=rango_e[r],
+        ot_sinkhorn = ot.da.SinkhornTransport(metric=metrica, reg_e=rango_e[r],
                                               verbose=Verbose)
         acc_cv = []
         if kfold is None:
+            if Verbose:
+                print('No Kfold for reg param search')
             ot_sinkhorn.fit(Xs=xs, Xt=xt)
             # transform
             transp_Xs_sinkhorn = ot_sinkhorn.transform(Xs=xs)
@@ -67,10 +70,11 @@ def CVsinkhorn(rango_e, xs, ys, xt, yt, clf, metrica="sqeuclidean",
 
             result.append(acc_)
         else:
+            if Verbose:
+                print('Kfold  is being used for reg param search')
             for k in range(kfold["nfold"]):
                 xs_train, xs_test, ys_train, ys_test = train_test_split(
-                    xs, ys, train_size=kfold["train_size"], random_state=42,
-                    stratify=ys)
+                    xs, ys, train_size=kfold["train_size"], stratify=ys)
                 ot_sinkhorn.fit(Xs=xs_train, Xt=xt)
                 # transform
                 transp_Xs_sinkhorn = ot_sinkhorn.transform(Xs=xs_test)
@@ -85,6 +89,8 @@ def CVsinkhorn(rango_e, xs, ys, xt, yt, clf, metrica="sqeuclidean",
 
     index = np.argmax(result)
     regu = rango_e[index]
+    if Verbose:
+        print('Best reg params= '+ str(regu))
     return regu
 
 
@@ -140,6 +146,8 @@ def CVgrouplasso(rango_e, rango_cl, xs, ys, xt, yt, clf, metrica="sqeuclidean",
                     metric=metrica, reg_e=rango_e[r],
                     reg_cl=rango_cl[rr], verbose=Verbose)
             if kfold is None:
+                if Verbose:
+                    print('No Kfold for reg param search')
                 ot_l1l2.fit(Xs=xs, ys=ys, Xt=xt)
 
                 # transport source samples onto target samples
@@ -152,10 +160,11 @@ def CVgrouplasso(rango_e, rango_cl, xs, ys, xt, yt, clf, metrica="sqeuclidean",
 
                 result[r, rr] = acc_
             else:
+                if Verbose:
+                    print('Kfold  is being used for reg param search')
                 for k in range(kfold["nfold"]):
                     xs_train, xs_test, ys_train, ys_test = train_test_split(
-                        xs, ys, train_size=kfold["train_size"], stratify=ys, 
-                        random_state=42)
+                        xs, ys, train_size=kfold["train_size"], stratify=ys)
 
                     # Sinkhorn Transport with Group lasso regularization
                     ot_l1l2.fit(Xs=xs_train, ys=ys_train, Xt=xt)
@@ -172,6 +181,8 @@ def CVgrouplasso(rango_e, rango_cl, xs, ys, xt, yt, clf, metrica="sqeuclidean",
 
     index = unravel_index(result.argmax(), result.shape)
     regu = [rango_e[index[0]], rango_cl[index[1]]]
+    if Verbose:
+        print('Best reg params= ' + str(regu))
     return regu
 
 
@@ -226,10 +237,12 @@ def CVgrouplasso_backward(rango_e, rango_cl, xs, ys, xt, yt, clf,
     for r in range(np.size(rango_e)):
         for rr in range(np.size(rango_cl)):
             acc_cv = []
-            bot_l1l2 = ot.da.SinkhornL1l2Transport(
+            if kfold is None:
+                if Verbose:
+                    print('No Kfold for reg param search')
+                bot_l1l2 = ot.da.SinkhornL1l2Transport(
                     metric=metrica, reg_e=rango_e[r], reg_cl=rango_cl[rr],
                     verbose=Verbose)
-            if kfold is None:
                 bot_l1l2.fit(Xs=xt, ys=yt, Xt=xs)
                 # transport target samples onto source samples
                 transp_Xt_lpl1 = bot_l1l2.transform(Xs=xt)
@@ -239,12 +252,15 @@ def CVgrouplasso_backward(rango_e, rango_cl, xs, ys, xt, yt, clf,
 
                 result[r, rr] = acc_
             else:
-
+                if Verbose:
+                    print('Kfold  is being used for reg param search')
                 for k in range(kfold["nfold"]):
                     xt_train, xt_test, yt_train, yt_test = train_test_split(
-                        xt, yt, train_size=kfold["train_size"], stratify=yt, 
-                        random_state=42)
+                        xt, yt, train_size=kfold["train_size"], stratify=yt)
 
+                    bot_l1l2 = ot.da.SinkhornL1l2Transport(
+                        metric=metrica, reg_e=rango_e[r], reg_cl=rango_cl[rr],
+                        verbose=Verbose)
                     # Sinkhorn Transport with Group lasso regularizatio
                     bot_l1l2.fit(Xs=xt_train, ys=yt_train, Xt=xs)
                     # transport target samples onto source samples
@@ -256,7 +272,8 @@ def CVgrouplasso_backward(rango_e, rango_cl, xs, ys, xt, yt, clf,
                 result[r, rr] = np.mean(acc_cv)
     index = unravel_index(result.argmax(), result.shape)
     regu = [rango_e[index[0]], rango_cl[index[1]]]
-
+    if Verbose:
+        print('Best reg params= ' + str(regu))
     return regu
 
 
@@ -287,7 +304,7 @@ def CVsinkhorn_backward(rango_e, xs, ys, xt, yt, clf, metrica="sqeuclidean",
     metrica : string, optional
         distance used within OT. The default is "sqeuclidean".
     kfold : dict, optional
-        dictionary which contains in "nfold" the number of fold to run the 
+        dictionary which contains in "nfold" the number of fold to run the
         kfold cross-validation and "train_size" a value between 0 and 1
         which indicate the percentage of data keep for training.
         The default is None.
@@ -304,9 +321,11 @@ def CVsinkhorn_backward(rango_e, xs, ys, xt, yt, clf, metrica="sqeuclidean",
 
     for r in range(np.size(rango_e)):
         acc_cv = []
-        bot = ot.da.SinkhornTransport(metric=metrica, reg_e=rango_e[r],
-                                          verbose=Verbose)
         if kfold is None:
+            if Verbose:
+                print('No Kfold for reg param search')
+            bot = ot.da.SinkhornTransport(metric=metrica, reg_e=rango_e[r],
+                                          verbose=Verbose)
             # Sinkhorn Transport with Group lasso regularization
             bot.fit(Xs=xt, ys=yt, Xt=xs)
 
@@ -319,10 +338,13 @@ def CVsinkhorn_backward(rango_e, xs, ys, xt, yt, clf, metrica="sqeuclidean",
 
             result.append(acc_)
         else:
+            if Verbose:
+                print('Kfold  is being used for reg param search')
             for k in range(kfold["nfold"]):
                 xt_train, xt_test, yt_train, yt_test = train_test_split(
-                    xt, yt, train_size=kfold["train_size"], stratify=yt, 
-                    random_state=42)
+                    xt, yt, train_size=kfold["train_size"], stratify=yt)
+                bot = ot.da.SinkhornTransport(metric=metrica, reg_e=rango_e[r],
+                                              verbose=Verbose)
                 # Sinkhorn Transport with Group lasso regularization
                 bot.fit(Xs=xt_train, ys=yt_train, Xt=xs)
 
@@ -338,13 +360,14 @@ def CVsinkhorn_backward(rango_e, xs, ys, xt, yt, clf, metrica="sqeuclidean",
     result = np.asarray(result)
     index = np.argmax(result)
     regu = rango_e[index]
+    if Verbose:
+        print('Best reg params= ' + str(regu))
     return regu
 
 
 def SelectSubsetTraining_BOTDAl1l2(xs, ys, xv, yv, rango_e, rango_cl, clf,
-                                    metrica="sqeuclidean", outerkfold=20,
-                                    innerkfold=None, M=40,
-                                    Verbose=False):
+                                   metrica="sqeuclidean", outerkfold=20, 
+                                   innerkfold=None, M=40, Verbose=False):
     """
     select subset of source data to learn the mapping and the best regu
     parameters for that subset.
@@ -400,7 +423,7 @@ def SelectSubsetTraining_BOTDAl1l2(xs, ys, xv, yv, rango_e, rango_cl, clf,
     regu_ = []
 
     for k in range(outerkfold):
-        xs_daotcv, X_test, ys_daotcv, y_test = train_test_split(xs, ys, train_size=M, stratify=ys, random_state=42)
+        xs_daotcv, X_test, ys_daotcv, y_test = train_test_split(xs, ys, train_size=M, stratify=ys)
 
         lista_xs.append(xs_daotcv)
         lista_ys.append(ys_daotcv)
@@ -484,7 +507,7 @@ def SelectSubsetTraining_BOTDAs(xs, ys, xv, yv, rango_e, clf,
 
     for k in range(outerkfold):
         xs_daotcv, X_test, ys_daotcv, y_test = train_test_split(
-            xs, ys, train_size=M, stratify=ys, random_state=42)
+            xs, ys, train_size=M, stratify=ys)
 
         lista_xs.append(xs_daotcv)
         lista_ys.append(ys_daotcv)
@@ -567,9 +590,7 @@ def SelectSubsetTraining_OTDAl1l2(xs, ys, xv, yv, rango_e, rango_cl, clf,
     regu_ = []
 
     for k in range(outerkfold):        
-        xs_daotcv, X_test, ys_daotcv, y_test = train_test_split(
-                                            xs, ys, train_size=M, stratify=ys, 
-                                            random_state=42)
+        xs_daotcv, X_test, ys_daotcv, y_test = train_test_split(xs, ys, train_size=M, stratify=ys)
 
         lista_xs.append(xs_daotcv)
         lista_ys.append(ys_daotcv)
@@ -654,7 +675,7 @@ def SelectSubsetTraining_OTDAs(xs, ys, xv, yv, rango_e, clf,
 
     for k in range(outerkfold):
         xs_daotcv, X_test, ys_daotcv, y_test = train_test_split(
-            xs, ys, train_size=M, stratify=ys, random_state=42)
+            xs, ys, train_size=M, stratify=ys)
 
         lista_xs.append(xs_daotcv)
         lista_ys.append(ys_daotcv)
