@@ -1,4 +1,4 @@
-name: rpa
+name: otda
 channels:
   - conda-forge
   - defaults
