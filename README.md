@@ -5,18 +5,22 @@ You will find here all the codes and instructions you need in order to reproduce
 In MIOTDAfunctions.py you will find all the defined functions implemented for learning the mapping, the training subset as well as choosing the best regularization parameters. 
 
 Two notebook examples are provided, each one for each online testing scenario considered in our study. 
-## Requirements 
-Python 3:
+## Requirements
+Python 3.7:
 1) [MNE](https://mne.tools/stable/index.html)
 2) [POT](https://github.com/PythonOT/POT)
-3) [Scikit Learn](https://scikit-learn.org/stable/)
+3) [Scikit Learn](https://scikit-learn.org/stable/) 
+4) [RPA](https://github.com/plcrodrigues/RPA)
+
 ## Installation guidelines
 This guidelines are based on [Anaconda](https://www.anaconda.com/distribution/) distribution.
 The library has been tested on Linux and Windows.
-#### Install requirements
+
+If you want to reproduce experiments and results, where OTD and data aligment methods are implemented, use the environment.yml file to create your environment. Otherwise, if you just want to run OTDA, follow these steps:
+#### Install requirements f
 1. Create conda environment
 ```
-conda create --name otda pip
+conda create --name otda python=3.7 -y
 ```
 2. Activate conda environment
 ```
@@ -24,7 +28,7 @@ conda activate otda
 ```
 3. Install Sklearn
 ```
- pip3 install sklearn
+ pip3 install scikit-learn
 ```
 4. Install Jupyter (if needed)
 ```
@@ -32,7 +36,7 @@ conda activate otda
 ```
 5. Install MNE (more information [here](https://mne.tools/stable/install/mne_python.html))
 ```
- pip3 install mne
+ pip3 install mne=0.19
 ```
 6. Install POT (more information [here](https://pythonot.github.io/))
 ```
