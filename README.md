@@ -16,7 +16,7 @@ Python 3.7:
 This guidelines are based on [Anaconda](https://www.anaconda.com/distribution/) distribution.
 The library has been tested on Linux and Windows.
 
-If you want to reproduce experiments and results, where OTD and data aligment methods are implemented, use the environment.yml file to create your environment. Otherwise, if you just want to run OTDA, follow these steps:
+If you want to reproduce experiments and results, where OTDA and data alignment methods are implemented, use the environment.yml file to create your environment. Otherwise, if you just want to run OTDA, follow these steps:
 #### Install requirements f
 1. Create conda environment
 ```
@@ -36,7 +36,7 @@ conda activate otda
 ```
 5. Install MNE (more information [here](https://mne.tools/stable/install/mne_python.html))
 ```
- pip3 install mne=0.19
+ pip3 install mne==0.19
 ```
 6. Install POT (more information [here](https://pythonot.github.io/))
 ```
