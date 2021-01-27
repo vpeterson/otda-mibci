@@ -1,0 +1,17 @@
+name: otda
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.7
+  - pip
+  - pandas
+  - statsmodels
+  - mne==0.19
+  - pot
+  - spyder
+  - pip:
+    - scikit-posthocs==0.6.5
+    - seaborn==0.10.0
+    - statannot==0.2.3
+    
