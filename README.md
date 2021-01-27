@@ -4,7 +4,7 @@ You will find here all the codes and instructions you need in order to reproduce
 
 In MIOTDAfunctions.py you will find all the defined functions implemented for learning the mapping, the training subset as well as choosing the best regularization parameters. 
 
-Two notebook examples are provided, each one for each online testing scenario considered in our study. 
+Two notebook examples are provided, each one for each online testing scenario considered in our study. In addition, a basic example on how OTDA can be used in MI-BCI is provided.  
 ## Requirements
 Python 3.7:
 1) [MNE](https://mne.tools/stable/index.html)
@@ -16,32 +16,44 @@ Python 3.7:
 This guidelines are based on [Anaconda](https://www.anaconda.com/distribution/) distribution.
 The library has been tested on Linux and Windows.
 
-If you want to reproduce experiments and results, where OTDA and data alignment methods are implemented, use the environment.yml file to create your environment. Otherwise, if you just want to run OTDA, follow these steps:
-#### Install requirements f
+If you want to reproduce experiments and results, where OTDA and data alignment methods are implemented follow these steps:
+#### Install requirements for reproduce the experiments
 1. Create conda environment
 ```
-conda create --name otda python=3.7 -y
+conda env create -f environment_paper.yml
+
+```
+2. Activate conda environment
+```
+conda activate test_otdapaper
+```
+3. Download or clone the [RPA](https://github.com/plcrodrigues/RPA)
+ repository
+4. Go to the downloaded directory and run
+```
+python setup.py develop
+```
+5. Install Jupyter (if needed)
+```
+ pip3 install jupyter
+```
+
+If you just want to use OTDA and run the basic example follow these steps:
+#### Install requirements for OTDA
+1. Create conda environment
+```
+conda env create -f environment_otda.yml
+
 ```
 2. Activate conda environment
 ```
 conda activate otda
 ```
-3. Install Sklearn
-```
- pip3 install scikit-learn
-```
-4. Install Jupyter (if needed)
+3. Install Jupyter (if needed)
 ```
  pip3 install jupyter
 ```
-5. Install MNE (more information [here](https://mne.tools/stable/install/mne_python.html))
-```
- pip3 install mne==0.19
-```
-6. Install POT (more information [here](https://pythonot.github.io/))
-```
- conda install -c conda-forge pot
-```
+
 #### Install OTDA-MIBCI
 Option 1: using git
 ```
