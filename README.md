@@ -62,7 +62,7 @@ Option 1: using git
 Option 2: download this folder and unzip it
 #### Examples:
 ##### Blockwise OTDA test
-Locate where otda-mibci folder is:
+With the test_otdapaper environment activated, locate where otda-mibci folder is:
 ```
 cd otda-mibci
 ```
@@ -71,9 +71,14 @@ Run the notebook:
 jupyter notebook Example_blockwise_MIOTDA.ipynb
 ```
 ##### Samplewise OTDA test
-If located on the otda-mibci folder run the notebook:
+With the test_otdapaper environment activated and located on the otda-mibci folder, run the notebook:
 ```
 jupyter notebook Example_blockwise_MIOTDA.ipynb
+```
+##### Basic OTDA test
+With the otda environment activated, located on the otda-mibci folder and run the notebook:
+```
+jupyter notebook Basic_example.ipynb
 ```
 ##### And you are ready. Happy coding!
 
