@@ -1,23 +1,16 @@
-## DOMAIN ADAPTATION BASED ON OPTIMAL TRANSPORT FOR MI-BCI
+# DOMAIN ADAPTATION BASED ON OPTIMAL TRANSPORT FOR MI-BCI
 
 You will find here all the codes and instructions you need in order to reproduce the experiments performed in "Transfer Learning based on Optimal Transport for Motor Imagery Brain-Computer Interfaces", by Victoria Peterson, Nicolás Nieto, Dominik Wyser, Olivier Lambercy, Roger Gassert, Diego H. Milone and Ruben D. Spies
 
 In MIOTDAfunctions.py you will find all the defined functions implemented for learning the mapping, the training subset as well as choosing the best regularization parameters. 
 
 Two notebook examples are provided, each one for each online testing scenario considered in our study. In addition, a basic example on how OTDA can be used in MI-BCI is provided.  
-## Requirements
-Python 3.7:
-1) [MNE](https://mne.tools/stable/index.html)
-2) [POT](https://github.com/PythonOT/POT)
-3) [Scikit Learn](https://scikit-learn.org/stable/) 
-4) [RPA](https://github.com/plcrodrigues/RPA)
-
 ## Installation guidelines
 This guidelines are based on [Anaconda](https://www.anaconda.com/distribution/) distribution.
 The library has been tested on Linux and Windows.
 
+## Install requirements for reproducing the experiments
 If you want to reproduce experiments and results, where OTDA and data alignment methods are implemented follow these steps:
-#### Install requirements for reproduce the experiments
 1. Create conda environment
 ```
 conda env create -f environment_paper.yml
@@ -33,13 +26,25 @@ conda activate test_otdapaper
 ```
 python setup.py develop
 ```
-5. Install Jupyter (if needed)
+5. Download or clone [OTDA-MIBCI](https://github.com/vpeterson/otda-mibci.git)
+6. Go to the OTDA-MIBCI downloaded directory
+7. Install Jupyter (if needed)
 ```
  pip3 install jupyter
 ```
-
-If you just want to use OTDA and run the basic example follow these steps:
-#### Install requirements for OTDA
+8. Run the examples
+##### Blockwise test
+Run the notebook:
+```
+jupyter notebook paper_example_blockwise.ipynb
+```
+##### Samplewise test
+Run the notebook:
+```
+jupyter notebook paper_example_samplewise.ipynb
+```
+## Install requirements for using OTDA-MIBCI
+If you just want to use OTDA, and learn how to use it, follow these steps:
 1. Create conda environment
 ```
 conda env create -f environment_otda.yml
@@ -53,30 +58,10 @@ conda activate otda
 ```
  pip3 install jupyter
 ```
-
-#### Install OTDA-MIBCI
-Option 1: using git
-```
- git clone https://github.com/vpeterson/otda-mibci.git
-```
-Option 2: download this folder and unzip it
-#### Examples:
-##### Blockwise OTDA test
-With the test_otdapaper environment activated, locate where otda-mibci folder is:
-```
-cd otda-mibci
-```
+4. Download or clone [OTDA-MIBCI](https://github.com/vpeterson/otda-mibci.git)
+5. Go to the OTDA-MIBCI downloaded directory
+6. Run the basic example
 Run the notebook:
-```
-jupyter notebook Example_blockwise_MIOTDA.ipynb
-```
-##### Samplewise OTDA test
-With the test_otdapaper environment activated and located on the otda-mibci folder, run the notebook:
-```
-jupyter notebook Example_blockwise_MIOTDA.ipynb
-```
-##### Basic OTDA test
-With the otda environment activated, located on the otda-mibci folder and run the notebook:
 ```
 jupyter notebook Basic_example.ipynb
 ```
