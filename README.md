@@ -14,7 +14,6 @@ If you want to reproduce experiments and results, where OTDA and data alignment 
 1. Create conda environment
 ```
 conda env create -f environment_paper.yml
-
 ```
 2. Activate conda environment
 ```
@@ -33,13 +32,12 @@ python setup.py develop
  pip3 install jupyter
 ```
 8. Run the examples
-##### Blockwise test
-Run the notebook:
+
+#### Blockwise test
 ```
 jupyter notebook paper_example_blockwise.ipynb
 ```
-##### Samplewise test
-Run the notebook:
+#### Samplewise test
 ```
 jupyter notebook paper_example_samplewise.ipynb
 ```
@@ -48,7 +46,6 @@ If you just want to use OTDA, and learn how to use it, follow these steps:
 1. Create conda environment
 ```
 conda env create -f environment_otda.yml
-
 ```
 2. Activate conda environment
 ```
@@ -61,7 +58,6 @@ conda activate otda
 4. Download or clone [OTDA-MIBCI](https://github.com/vpeterson/otda-mibci.git)
 5. Go to the OTDA-MIBCI downloaded directory
 6. Run the basic example
-Run the notebook:
 ```
 jupyter notebook Basic_example.ipynb
 ```
