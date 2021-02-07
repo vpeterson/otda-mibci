@@ -27,8 +27,9 @@ conda activate test_otdapaper
 ```
 python setup.py develop
 ```
-7. Go again to the OTDA-MIBCI downloaded directory
+7. Go to the OTDA-MIBCI downloaded directory
 8. Run the examples
+
 **Block-wise test**
 ```
 jupyter notebook paper_example_blockwise.ipynb
