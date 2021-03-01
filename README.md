@@ -40,7 +40,7 @@ jupyter notebook paper_example_samplewise.ipynb
 ```
 ## Install requirements for using OTDA-MIBCI
 If you just want to use OTDA, and learn how to use it, follow these steps:
-1. Donwload and extract the zip or clone [OTDA-MIBCI](https://github.com/vpeterson/otda-mibci.git)
+1. Download and extract the zip or clone [OTDA-MIBCI](https://github.com/vpeterson/otda-mibci.git)
 2. Go to the OTDA-MIBCI directory
 3. Create conda environment
 ```
