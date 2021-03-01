@@ -11,7 +11,7 @@ The library has been tested on Linux and Windows.
 
 ### Install requirements for reproducing the experiments
 If you want to reproduce experiments and results, where OTDA and data alignment methods are implemented follow these steps:
-1. Donwload and extract the zip or clone [OTDA-MIBCI](https://github.com/vpeterson/otda-mibci.git)
+1. Download and extract the zip or clone [OTDA-MIBCI](https://github.com/vpeterson/otda-mibci.git)
 2. Go to the OTDA-MIBCI directory
 3. Create conda environment
 ```
