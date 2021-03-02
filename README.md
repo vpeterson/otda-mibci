@@ -1,12 +1,8 @@
 # DOMAIN ADAPTATION BASED ON OPTIMAL TRANSPORT FOR MI-BCI
 <p align="center">
-<img src="Images/forward_backward_OT.png" width="200">
-</p>
-
-You will find here all the codes and instructions needed to reproduce the experiments performed in "Transfer Learning based on Optimal Transport for Motor Imagery Brain-Computer Interfaces", by Victoria Peterson, Nicolás Nieto, Dominik Wyser, Olivier Lambercy, Roger Gassert, Diego H. Milone and Ruben D. Spies
-<p align="center">
 <img src="Images/OTDA_workflow.png" width="600">
 </p>
+You will find here all the codes and instructions needed to reproduce the experiments performed in "Transfer Learning based on Optimal Transport for Motor Imagery Brain-Computer Interfaces", by Victoria Peterson, Nicolás Nieto, Dominik Wyser, Olivier Lambercy, Roger Gassert, Diego H. Milone and Ruben D. Spies
 
 In MIOTDAfunctions.py you will find all the defined functions implemented for learning the mapping, the training subset as well as choosing the best regularization parameters. 
 
