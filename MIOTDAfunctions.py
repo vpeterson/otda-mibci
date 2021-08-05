@@ -74,7 +74,7 @@ def CVsinkhorn(rango_e, xs, ys, xt, yt, clf, metrica="sqeuclidean",
             for k in range(kfold["nfold"]):
                 xt_train, xt_test, yt_train, yt_test = train_test_split(
                     xt, yt, train_size=kfold["train_size"], stratify=yt, 
-                    random_state=k)
+                    random_state=100*k)
                 ot_sinkhorn.fit(Xs=xs, Xt=xt_train)
                 # transform
                 transp_Xs_sinkhorn = ot_sinkhorn.transform(Xs=xs)
@@ -169,7 +169,7 @@ def CVgrouplasso(rango_e, rango_cl, xs, ys, xt, yt, clf, metrica="sqeuclidean",
                 for k in range(kfold["nfold"]):
                     xt_train, xt_test, yt_train, yt_test = train_test_split(
                         xt, yt, train_size=kfold["train_size"], stratify=yt, 
-                        random_state=k)
+                        random_state=100*k)
 
                     # Sinkhorn Transport with Group lasso regularization
                     ot_l1l2.fit(Xs=xs, ys=ys, Xt=xt_train)
@@ -267,7 +267,7 @@ def CVgrouplasso_backward(rango_e, rango_cl, xs, ys, xt, yt, clf,
                         print('CV is being used for reg param search')
                     xt_train, xt_test, yt_train, yt_test = train_test_split(
                         xt, yt, train_size=kfold["train_size"], stratify=yt, 
-                        random_state=k)
+                        random_state=100*k)
 
                     # Sinkhorn Transport with Group lasso regularizatio
                     bot_l1l2.fit(Xs=xt_train, ys=yt_train, Xt=xs)
@@ -354,7 +354,7 @@ def CVsinkhorn_backward(rango_e, xs, ys, xt, yt, clf, metrica="sqeuclidean",
                     print('CV is being used for reg param search')
                 xt_train, xt_test, yt_train, yt_test = train_test_split(
                     xt, yt, train_size=kfold["train_size"], stratify=yt, 
-                    random_state=k)
+                    random_state=100*k)
                 # Sinkhorn Transport with Group lasso regularization
                 bot.fit(Xs=xt_train, ys=yt_train, Xt=xs)
 
@@ -433,7 +433,7 @@ def SelectSubsetTraining_OTDAs(xs, ys, xv, yv, rango_e, clf,
 
     for k in range(outerkfold):
         xs_daotcv, X_test, ys_daotcv, y_test = train_test_split(
-            xs, ys, train_size=M, stratify=ys, random_state=k)
+            xs, ys, train_size=M, stratify=ys, random_state=100*k)
 
         lista_xs.append(xs_daotcv)
         lista_ys.append(ys_daotcv)
@@ -528,7 +528,7 @@ def SelectSubsetTraining_OTDAl1l2(xs, ys, xv, yv, rango_e, rango_cl, clf,
     for k in range(outerkfold):        
         xs_daotcv, X_test, ys_daotcv, y_test = train_test_split(
                                             xs, ys, train_size=M, stratify=ys, 
-                                            random_state=k)
+                                            random_state=100*k)
 
         lista_xs.append(xs_daotcv)
         lista_ys.append(ys_daotcv)
@@ -620,7 +620,7 @@ def SelectSubsetTraining_BOTDAs(xs, ys, xv, yv, rango_e, clf,
 
     for k in range(outerkfold):
         xs_daotcv, xs_test, ys_daotcv, ys_test = train_test_split(
-            xs, ys, train_size=M, stratify=ys, random_state=k)
+            xs, ys, train_size=M, stratify=ys, random_state=100*k)
 
         lista_xs.append(xs_daotcv)
         lista_ys.append(ys_daotcv)
@@ -712,7 +712,7 @@ def SelectSubsetTraining_BOTDAl1l2(xs, ys, xv, yv, rango_e, rango_cl, clf,
         xs_daotcv, xs_test, ys_daotcv, ys_test = train_test_split(xs, ys,
                                                                   train_size=M,
                                                                   stratify=ys, 
-                                                                  random_state=k)
+                                                                  random_state=100*k)
 
         lista_xs.append(xs_daotcv)
         lista_ys.append(ys_daotcv)
