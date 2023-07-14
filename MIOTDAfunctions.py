@@ -742,3 +742,145 @@ def SelectSubsetTraining_BOTDAl1l2(xs, ys, xv, yv, rango_e, rango_cl, clf,
        print('Best reg params: '+ str(reg_best))
        print('Acc. matrix: ' + str(acc_cv))
     return subset_xs, subset_ys, reg_best
+
+# added in 2023
+
+def distance_to_hyperplane(X, clf):
+    """
+    Given a set of data, the distance to the hyperplane is calculated. 
+    
+    @author: nnieto 
+    Parameters
+    ----------
+    X : array (ns, m)
+       data matrix.
+    clf : model
+        classifier ALREADY trained. 
+
+    Returns
+    -------
+    TYPE
+        array of distances
+
+    """
+    b = clf.intercept_
+    W = clf.coef_
+    # Module
+    mod = np.sqrt(np.sum(np.power(W, 2)))
+    # distance
+    d = np.abs(np.dot(X, W.T)+b)/mod
+    return d[:, 0]
+
+
+def wrong_classified(clf, X, Y):
+    """
+    Returns the indices of wrong classified samples
+    
+    @author: nnieto & vpeterson
+    Parameters
+    ----------
+    X : array (ns, m)
+       traing data matrix
+    
+    Y : array (ns,)
+        labels training data
+       
+    clf : model
+        classifier ALREADY trained on X and Y 
+
+    Returns
+    -------
+    TYPE
+        array of indices
+
+    """
+    # Make a prediction
+    Y_pred = clf.predict(X)
+
+    # Check missclassified points
+    idx_wrong = np.where(Y_pred!=Y)[0]
+    
+
+    return idx_wrong
+
+def SelectSubsetTraining_distance_BOTDAl1l2(xs, ys, xv, yv, rango_e, rango_cl,
+                                            clf, metrica="sqeuclidean", 
+                                            innerkfold=None, M=20, norm="max",
+                                            Verbose=False):
+    """
+    select subset of source data to learn the mapping based on the distance
+    to the decision boundaries and the best regu
+    parameters for that subset.
+
+    Parameters
+    ----------
+    xs : array (ns, m)
+        source data matrix.
+    ys : array (ns,)
+        labels source samples.
+    xv : array(nv,m)
+        transportation matrix.
+    yv : array (nv,)
+        labels transportation set samples.
+    rango_e : list
+        grid of parameter values from the regularization term for entropic
+        regularization
+    clf : model
+        classifier ALREADY trained on Source data. 
+        Used to make the prediction on the transported target samples.
+    metrica : TYPE, optional
+        DESCRIPTION. The default is "sqeuclidean".
+    innerkfold : dict, optional
+        dictionary which contains in "nfold" the number of fold to run the
+        kfold cross-validation and "train_size" a value between 0 and 1
+        which indicate the percentage of data keep for training.
+        The default is None.
+    M : number, optional
+        final samples included in the subset. The default is 20.
+    norm : str, optional
+        apply normalization to the loss matrix. Avoid numerical errors that
+        can occur with large metric values. Default is "max"
+    Verbose : bool, optional
+        Controls the verbosity. The default is False.
+
+    Returns
+    -------
+    subset_xv: array (M, m)
+        best selected subset
+    subset_yv: (M,)
+        corresponding labels of the selected subset_xv
+    reg_best: list
+        regularization parameter for the entropic and the group lasso
+        terms.
+    """
+    
+    # get the distance
+    d = distance_to_hyperplane(xs, clf)
+    
+    # get the wrong classified points
+    idx_w = wrong_classified(clf, xs, ys)
+    
+    # put -infinity in distance where wrong classified indices are
+    d[idx_w] = -np.inf
+    
+    # get the indices of sorted distance in descending order
+    idx_d = np.argsort(d)[::-1]
+    
+    # we want to keep the M 
+    # sort the source samples accordingly
+    subset_xs = xs[idx_d, :]
+    subset_ys = ys[idx_d]
+    
+    # now get the best regu param 
+
+    if np.size(rango_e) == 1 and np.size(rango_cl) == 1:
+        regu = [rango_e[0], rango_cl[0]]
+    else:
+        regu = CVgrouplasso_backward(rango_e, rango_cl, subset_xs, subset_ys,
+                                     xv, yv, clf, metrica,
+                                     innerkfold, norm, Verbose)
+
+
+    if Verbose:
+       print('Best reg params: '+ str(regu))
+    return subset_xs, subset_ys, regu
