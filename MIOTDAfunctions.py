@@ -866,11 +866,26 @@ def SelectSubsetTraining_distance_BOTDAl1l2(xs, ys, xv, yv, rango_e, rango_cl,
     # get the indices of sorted distance in descending order
     idx_d = np.argsort(d)[::-1]
     
-    # we want to keep the M 
     # sort the source samples accordingly
-    subset_xs = xs[idx_d, :]
-    subset_ys = ys[idx_d]
+    # subset_xs = xs[idx_d[:M], :]
+    # subset_ys = ys[idx_d[:M]]
+    xs_sort = xs[idx_d, :]
+    ys_sort = ys[idx_d]
     
+    classes = np.unique(ys_sort)
+    # get M per class
+    for ii, cc in enumerate(classes):
+        idx_ = np.where(ys_sort==cc)[0]
+        if ii==0:
+            subset_xs = xs_sort[idx_[:M],:]
+            subset_ys = ys_sort[idx_[:M]]
+        else:
+            subset_xs = np.vstack((subset_xs, xs_sort[idx_[:M],:]))
+            subset_ys = np.hstack((subset_ys, ys_sort[idx_[:M]]))
+
+        
+        
+      
     # now get the best regu param 
 
     if np.size(rango_e) == 1 and np.size(rango_cl) == 1:
