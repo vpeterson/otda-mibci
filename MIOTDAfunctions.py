@@ -836,7 +836,7 @@ def SelectSubsetTraining_distance_BOTDAl1l2(xs, ys, xv, yv, rango_e, rango_cl,
         which indicate the percentage of data keep for training.
         The default is None.
     M : number, optional
-        final samples included in the subset. The default is 20.
+        final samples included in the subset per class. The default is 20.
     norm : str, optional
         apply normalization to the loss matrix. Avoid numerical errors that
         can occur with large metric values. Default is "max"
