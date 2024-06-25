@@ -16,6 +16,8 @@ class BOTDA(BaseEstimator, TransformerMixin):
         # learn params of transport
         botda.fit(Xs=Gval, ys=Yval, Xt=Gtr)
         self.botda = botda
+        self.coupling_ = botda.coupling_
+        self.cost_ = botda.cost_
 
     def transform(self, Gte):
         #transport testing samples
