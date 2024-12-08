@@ -2,7 +2,7 @@ import ot
 from sklearn.base import BaseEstimator, TransformerMixin
 
 
-class BOTDA(BaseEstimator, TransformerMixin):
+class SBA(BaseEstimator, TransformerMixin):
     def __init__(self, reg, clf, metric, make_prediction=True):
         """Initialize instance."""
         self.reg = reg
@@ -18,7 +18,7 @@ class BOTDA(BaseEstimator, TransformerMixin):
         self.botda = botda
         self.coupling_ = botda.coupling_
         self.cost_ = botda.cost_
-
+        self.algorithmic_support = botda.coupling_[-1, :] @ botda.cost_[-1,:]
     def transform(self, Gte):
         #transport testing samples
         Gte_transported=self.botda.transform(Xs=Gte)
